@@ -3,8 +3,7 @@ version: 0.2
 env:
   variables:
     AWS_REGION: "us-west-1"
-#    REACT_APP_API_SERVICE_URL: "http://localhost:5004" --> change for the Load Balancer ARN
-    REACT_APP_API_SERVICE_URL: "flask-react-alb-888601929.us-west-1.elb.amazonaws.com"
+    REACT_APP_API_SERVICE_URL: "http://flask-react-alb-888601929.us-west-1.elb.amazonaws.com"
 
 phases:
   pre_build:
@@ -19,6 +18,7 @@ phases:
         else
           DOCKER_TAG=${CODEBUILD_RESOLVED_SOURCE_VERSION}
         fi
+      - echo "Docker tag:" $DOCKER_TAG
       - docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-users:$DOCKER_TAG || true
       - docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-client:builder || true
       - docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-client:$DOCKER_TAG || true
@@ -36,9 +36,9 @@ phases:
       - echo building prod images...
       - >
         docker build \
-          --cache-from $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-users:prod \
+          --cache-from $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-users:$DOCKER_TAG \
           -f services/users/Dockerfile.prod \
-          -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-users:prod \
+          -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-users:$DOCKER_TAG \
           ./services/users
       - >
         docker build \
@@ -51,9 +51,9 @@ phases:
           ./services/client
       - >
         docker build \
-          --cache-from $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-client:prod \
+          --cache-from $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-client:$DOCKER_TAG \
           -f services/client/Dockerfile.prod \
-          -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-client:prod \
+          -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-client:$DOCKER_TAG \
           ./services/client
   post_build:
     commands:
@@ -61,3 +61,5 @@ phases:
     - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-users:$DOCKER_TAG
     - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-client:builder
     - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-client:$DOCKER_TAG
+    - chmod +x ./deploy.sh
+    - bash deploy.sh
