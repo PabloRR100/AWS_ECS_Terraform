@@ -51,3 +51,11 @@ docker push $AWS_ECR_ENDPOINT/test-driven-users:prod
 docker push $AWS_ECR_ENDPOINT/test-driven-client:prod
 
 
+### AWS RDS
+rds_username=webapp
+rds_password=ALjplHv5iQAxDAVelkQj
+rds_addess=flask-react-db.coonjasz2q7w.us-west-1.rds.amazonaws.com
+database_uri=postgres://$rds_username:$rds_password@$rds_addess:5432/api_prod
+database_uri_full=postgres://webapp:ALjplHv5iQAxDAVelkQj@flask-react-db.coonjasz2q7w.us-west-1.rds.amazonaws.com:5432/api_prod
+
+
